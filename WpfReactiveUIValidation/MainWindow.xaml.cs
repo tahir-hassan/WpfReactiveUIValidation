@@ -20,6 +20,9 @@ using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reactive.Linq;
 using ReactiveUI.Validation.Abstractions;
+using ReactiveUI.Validation.States;
+using ReactiveUI.Validation.Collections;
+using WpfReactiveUIValidation.ReactiveUIExtensions;
 
 namespace WpfReactiveUIValidation
 {
@@ -28,39 +31,34 @@ namespace WpfReactiveUIValidation
     /// </summary>
     public partial class MainWindow
     {
-        XMainWindowViewModel XViewModel = new XMainWindowViewModel();
-
-        private CompositeDisposable XBind<TControlProp, XProp>(
-            Expression<Func<MainWindow, TControlProp>> controlProp, 
-            Expression<Func<XMainWindowViewModel, XProp>> modelProp)
-        {
-            var _1 = this.WhenAnyValue(controlProp).BindTo(XViewModel, modelProp!);
-            var _2 = XViewModel.WhenAnyValue(modelProp).BindTo(this, controlProp!);
-            return new CompositeDisposable(_1, _2);
-        } 
+        XMainWindowViewModel XViewModel; 
 
         public MainWindow()
         {
             InitializeComponent();
 
             ViewModel = new EmptyViewModel();
+            XViewModel = new XMainWindowViewModel();
 
             this.WhenActivated(disposable =>
             {
-                XViewModel.WhenAnyValue(x => x)
-                    .BindTo(this, x => x.DataContext)
+                this.BindEx(XViewModel, vm => vm.Name, view => view.NameTextBox.Text)
                     .DisposeWith(disposable);
 
-                this.WhenAnyValue(x => x.XViewModel)
-                    .BindTo(this, x => x.DataContext)
+                this.BindEx(XViewModel, vm => vm.Address, view => view.AddressTextBox.Text)
                     .DisposeWith(disposable);
 
-                this.XBind(x => x.NameTextBox.Text, x => x.Name).DisposeWith(disposable);
-                this.XBind(x => x.AddressTextBox.Text, x => x.Address).DisposeWith(disposable);
+                var formatter = new SingleLineFormatter(Environment.NewLine);
+                
+                this.BindValidationEx(XViewModel, view => view.AllErrors.Text, formatter)
+                    .DisposeWith(disposable);
 
-                XViewModel.ValidationContext.ValidationStatusChange
-                    .Select(x => x.Text.ToSingleLine(Environment.NewLine))
-                    .BindTo(this, view => view.MyErrors.Text)
+                this.BindValidationEx(XViewModel, vm => vm.Name, 
+                    view => view.NameErrors.Text, formatter)
+                    .DisposeWith(disposable);
+
+                this.BindValidationEx(XViewModel, vm => vm.Address,
+                    view => view.AddressErrors.Text, formatter)
                     .DisposeWith(disposable);
 
                 XViewModel.IsValid()

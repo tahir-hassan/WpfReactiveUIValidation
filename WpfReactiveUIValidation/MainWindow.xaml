@@ -12,9 +12,12 @@
         <StackPanel Orientation="Vertical">
             <Label Content="Name: " FontWeight="Bold" />
             <TextBox x:Name="NameTextBox" />
+            <TextBlock x:Name="NameErrors" />
             <Label Content="Address: " FontWeight="Bold" />
             <TextBox x:Name="AddressTextBox" />
-            <TextBlock x:Name="MyErrors" /> 
+            <TextBlock x:Name="AddressErrors" />
+            <Separator />
+            <TextBlock x:Name="AllErrors" /> 
             <Button x:Name="SaveButton" Content="Save" Click="SaveButton_Click" />
         </StackPanel>
     </Grid>
