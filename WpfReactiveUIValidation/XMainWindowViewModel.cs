@@ -7,6 +7,7 @@ using ReactiveUI;
 using ReactiveUI.Validation.Abstractions;
 using ReactiveUI.Validation.Contexts;
 using ReactiveUI.Validation.Extensions;
+using WpfReactiveUIValidation.ReactiveUIExtensions;
 
 namespace WpfReactiveUIValidation
 {
@@ -17,12 +18,18 @@ namespace WpfReactiveUIValidation
             this.ValidationRule(
                 vm => vm.Name,
                 name => !string.IsNullOrWhiteSpace(name),
-                "You must specify a valid name");
+                "A name is required");
 
-            this.ValidationRule(
-                vm => vm.Address,
-                address => !string.IsNullOrWhiteSpace(address),
-                "You must specify a valid address");
+            this.ValidationRuleEx(vm => vm.Address,
+                address =>
+                {
+                    address = address?.Trim();
+                    if (string.IsNullOrEmpty(address))
+                        return (false, "An address is required");
+                    else if (!System.Text.RegularExpressions.Regex.IsMatch(address, @"^\d+"))
+                        return (false, "The address must start with a number");
+                    else return (true, "");
+                });
         }
 
         private string _name = "";

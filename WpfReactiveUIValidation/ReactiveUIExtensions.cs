@@ -12,6 +12,7 @@ using System.Reactive.Linq;
 using ReactiveUI.Validation.Formatters.Abstractions;
 using ReactiveUI;
 using System.Reactive.Disposables;
+using ReactiveUI.Validation.Helpers;
 
 namespace WpfReactiveUIValidation.ReactiveUIExtensions
 {
@@ -58,6 +59,20 @@ namespace WpfReactiveUIValidation.ReactiveUIExtensions
             return viewModel.ValidationStatusChangeFor(viewModelProperty)
                 .Select(x => formatter.Format(x.Text))
                 .BindTo(view, viewProperty!);
+        }
+
+        public static ValidationHelper ValidationRuleEx<TViewModel, TViewModelProperty>
+            (this TViewModel viewModel,
+            Expression<Func<TViewModel, TViewModelProperty>> viewModelProperty,
+            Func<TViewModelProperty, (bool isValid, string message)> validationFunc
+        )
+        where TViewModel : class, IReactiveObject, IValidatableViewModel
+        {
+            return viewModel.ValidationRule(viewModelProperty,
+                viewModel.WhenAnyValue(viewModelProperty)
+                    .Select(validationFunc),
+                    v => v.Item1,
+                    v => v.Item2);
         }
     }
 
